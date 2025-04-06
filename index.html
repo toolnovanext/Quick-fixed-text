@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickFix Text</title>
+    <style>
+        /* style.css */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #e74c3c;
+            --background-color: #f4f4f4;
+            --text-color: #333;
+            --light-gray: #ddd;
+            --dark-gray: #888;
+            --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            --transition-duration: 0.3s;
+        }
+
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --background-color: #333;
+            --text-color: #f4f4f4;
+            --light-gray: #555;
+            --dark-gray: #bbb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8); /* Translucent background */
+            backdrop-filter: blur(10px); /* Glassmorphism effect */
+            box-shadow: var(--box-shadow);
+            border-radius: 10px;
+            flex: 1;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--light-gray);
+            border-radius: 5px;
+            font-size: 16px;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            transition: border-color var(--transition-duration);
+            box-sizing: border-box; /* Important for padding to be included in width */
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color var(--transition-duration), transform 0.1s ease-in-out;
+            box-shadow: var(--box-shadow);
+        }
+
+        button:hover {
+            background-color: darken(var(--primary-color), 10%); /* Darken on hover */
+            transform: scale(1.05); /* Micro-interaction */
+        }
+
+        button:active {
+            transform: scale(0.95); /* Micro-interaction on click */
+        }
+
+        #searchResults {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 5px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+            line-height: 1.6;
+        }
+
+        .search-result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-text {
+            font-weight: bold;
+        }
+
+        .search-result-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            z-index: 1;
+            overflow: auto; /* Enable scroll if needed */
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: var(--background-color);
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid var(--light-gray);
+            width: 80%;
+            max-width: 600px;
+            box-shadow: var(--box-shadow);
+            border-radius: 10px;
+            transition: background-color var(--transition-duration), color var(--transition-duration);
+        }
+
+        .close-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--dark-gray);
+        }
+
+        .close-button:hover {
+            color: var(--secondary-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 10px auto;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            textarea {
+                font-size: 14px;
+            }
+
+            .button-container {
+                flex-direction: column; /* Stack buttons on smaller screens */
+                align-items: stretch; /* Make buttons full width */
+            }
+
+            button {
+                width: 100%;
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .modal-content {
+                margin: 25% auto;
+            }
+        }
+
+        /* Accessibility Enhancements */
+        button:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* Optional: Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>QuickFix Text</h1>
+
+        <textarea id="inputText" placeholder="Paste or enter your text here..." aria-label="Text input area"></textarea>
+
+        <div class="button-container">
+            <button id="findEmptyButton" aria-label="Find Empty Lines">Find Empty Lines</button>
+            <button id="reverseCharsButton" aria-label="Reverse Characters">Reverse Characters</button>
+            <button id="reverseWordsButton" aria-label="Reverse Words">Reverse Words</button>
+            <button id="searchButton" aria-label="Search">Search</button>
+        </div>
+
+        <div id="searchResults" aria-live="polite">
+            <!-- Search results will be displayed here -->
+        </div>
+    </div>
+
+    <div id="searchModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeSearchModal">×</span>
+            <p>Enter text to search:</p>
+            <input type="text" id="searchText" aria-label="Search text input">
+            <div class="modal-buttons">
+                <button id="confirmSearch" aria-label="Confirm Search">Confirm</button>
+                <button id="cancelSearch" aria-label="Cancel Search">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="replaceModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeReplaceModal">×</span>
+            <p>Enter replacement text:</p>
+            <textarea id="replaceText" aria-label="Replacement text input"></textarea>
+            <div class="modal-buttons">
+                <button id="confirmReplace" aria-label="Confirm Replace">Confirm</button>
+                <button id="cancelReplace" aria-label="Cancel Replace">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // script.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputText = document.getElementById('inputText');
+            const findEmptyButton = document.getElementById('findEmptyButton');
+            const reverseCharsButton = document.getElementById('reverseCharsButton');
+            const reverseWordsButton = document.getElementById('reverseWordsButton');
+            const searchButton = document.getElementById('searchButton');
+            const searchResults = document.getElementById('searchResults');
+
+            const searchModal = document.getElementById('searchModal');
+            const searchText = document.getElementById('searchText');
+            const confirmSearch = document.getElementById('confirmSearch');
+            const cancelSearch = document.getElementById('cancelSearch');
+            const closeSearchModal = document.getElementById('closeSearchModal');
+
+            const replaceModal = document.getElementById('replaceModal');
+            const replaceText = document.getElementById('replaceText');
+            const confirmReplace = document.getElementById('confirmReplace');
+            const cancelReplace = document.getElementById('cancelReplace');
+            const closeReplaceModal = document.getElementById('closeReplaceModal');
+
+            let currentText = '';
+            let currentSearchText = '';
+            let searchIndex = -1;
+
+            // Function to update currentText
+            function updateCurrentText() {
+                currentText = inputText.value;
+            }
+
+            // Empty Lines
+            findEmptyButton.addEventListener('click', () => {
+                updateCurrentText();
+                const lines = currentText.split('\n');
+                const emptyLines = lines.reduce((acc, line, index) => {
+                    if (line.trim() === '') {
+                        acc.push(index + 1);
+                    }
+                    return acc;
+                }, []);
+
+                if (emptyLines.length > 0) {
+                    searchResults.innerHTML = `<p>Empty lines found at lines: ${emptyLines.join(', ')}</p>`;
+                } else {
+                    searchResults.innerHTML = '<p>No empty lines found.</p>';
+                }
+            });
+
+            // Reverse Characters
+            reverseCharsButton.addEventListener('click', () => {
+                updateCurrentText();
+                inputText.value = currentText.split('').reverse().join('');
+                updateCurrentText();
+            });
+
+            // Reverse Words
+            reverseWordsButton.addEventListener('click', () => {
+                updateCurrentText();
+                inputText.value = currentText.split(' ').reverse().join(' ');
+                updateCurrentText();
+            });
+
+            // Search Functionality
+            searchButton.addEventListener('click', () => {
+                searchModal.style.display = 'block';
+                searchText.value = '';
+                searchResults.innerHTML = '';
+            });
+
+            confirmSearch.addEventListener('click', () => {
+                currentSearchText = searchText.value;
+                searchModal.style.display = 'none';
+                performSearch();
+            });
+
+            cancelSearch.addEventListener('click', () => {
+                searchModal.style.display = 'none';
+                searchResults.innerHTML = '';
+            });
+
+            closeSearchModal.addEventListener('click', () => {
+                searchModal.style.display = 'none';
+                searchResults.innerHTML = '';
+            });
+
+            function performSearch() {
+                updateCurrentText();
+                searchResults.innerHTML = '';
+                searchIndex = currentText.indexOf(currentSearchText);
+
+                if (searchIndex === -1) {
+                    searchResults.innerHTML = "<p>No matches found.</p>";
+                    return;
+                }
+
+                let count = 0;
+                let currentIndex = searchIndex;
+
+                while (currentIndex !== -1) {
+                    count++;
+
+                    const resultItem = document.createElement('div');
+                    resultItem.classList.add('search-result-item');
+
+                    const resultText = document.createElement('span');
+                    resultText.classList.add('search-result-text');
+                    resultText.textContent = `Match ${count} at index ${currentIndex}: ${currentText.substring(currentIndex, currentIndex + currentSearchText.length)}`;
+                    resultItem.appendChild(resultText);
+
+                    const resultButtons = document.createElement('div');
+                    resultButtons.classList.add('search-result-buttons');
+
+                    // Replace Button
+                    const replaceButton = document.createElement('button');
+                    replaceButton.textContent = 'Replace';
+                    replaceButton.addEventListener('click', () => {
+                        replaceModal.style.display = 'block';
+                        replaceText.value = '';
+
+                        confirmReplace.onclick = () => {
+                            const newText = replaceText.value;
+                            if (newText !== null) {
+                                currentText = currentText.substring(0, currentIndex) + newText + currentText.substring(currentIndex + currentSearchText.length);
+                                inputText.value = currentText;
+                                updateCurrentText();
+                            }
+                            replaceModal.style.display = 'none';
+                            performSearch();
+                        };
+                    });
+                    resultButtons.appendChild(replaceButton);
+
+                    // Delete Button
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => {
+                        currentText = currentText.substring(0, currentIndex) + currentText.substring(currentIndex + currentSearchText.length);
+                        inputText.value = currentText;
+                        updateCurrentText();
+                        performSearch();
+                    });
+                    resultButtons.appendChild(deleteButton);
+
+                    resultItem.appendChild(resultButtons);
+                    searchResults.appendChild(resultItem);
+
+                    currentIndex = currentText.indexOf(currentSearchText, currentIndex + 1);
+                }
+            }
+
+            // Modal Close
+            closeReplaceModal.addEventListener('click', () => {
+                replaceModal.style.display = 'none';
+            });
+
+            cancelReplace.addEventListener('click', () => {
+                replaceModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === replaceModal) {
+                    replaceModal.style.display = 'none';
+                }
+
+                if (event.target === searchModal) {
+                    searchModal.style.display = 'none';
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
